@@ -73,3 +73,78 @@ def update_screen():
     # Draw the score label
     score_label = score_font.render(
         f"Score: {score}", True, BLACK)
+            score_label_rect = score_label.get_rect(
+            center=(WIDTH // 2, HEIGHT + SCORE_HEIGHT // 2))
+        screen.blit(score_label, score_label_rect)
+
+        # Draw the game grid
+        for x in range(GRID_SIZE):
+            for y in range(GRID_SIZE):
+                draw_tile(
+                    x * TILE_SIZE, y * TILE_SIZE, grid[x][y])
+            
+        pygame.display.flip()
+
+    # Function to handle game over
+    def game_over():
+        game_over_text = font.render(
+            "Game Over", True, WHITE, BLACK)
+        screen.blit(
+            game_over_text, (
+                WIDTH // 2 - 100, HEIGHT // 2 - 25))
+        pygame.display.flip()
+        pygame.time.delay(2000)
+        
+    # Initialize the game
+    generate_new_tile()
+    generate_new_tile()
+    update_screen()
+    
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                
+            if event.type == pygame.KEYDOWN:
+                previous_grid = [row[:] for row in grid]
+                
+                if event.key == pygame.K_UP:
+                    for row in grid:
+                        row1 = [
+                            val for val in row if val != 0]
+                        for i in range(len(row1) - 1):
+                            if row1[i] == row1[i + 1]:
+                                row1[i] *= 2
+                                row1[i + 1] = 2
+                                # Update the score
+                                score += row1[i]
+                        row1 = [
+                            val for val in row1 if val != 0]
+                        row1 += [0] * (GRID_SIZE - len(row1))
+                        row[:] = row1
+                        
+            elif event.key == pygame.K_DOWN:
+                for row in grid:
+                    row1 = [
+                        val for val in row if val != 0]
+                    for i in range(len(row) - 1, 0, -1):
+                        if row1[i] == row1[i - 1]:
+                            row1[i] *= 2
+                            row1[i - 1] = 2
+                            # Update score
+                            score += row1[i]
+                    row1 = [val for val in row1
+                            if val != 0]
+                    row1 = [0] * (
+                        GRID_SIZE - len(row1)) + row1
+                    row[:] = row1
+                    
+            elif event.key == pygame.K_LEFT:
+                for col in range(GRID_SIZE):
+                    column = [grid[row][col]
+                              for row in range(GRID_SIZE)]
+                    column1 = [val for val in column1
+                                if val != 0]
+                    for i in range(len(column1) - 1):
+                        if column1[i] == column1[i + 1]:

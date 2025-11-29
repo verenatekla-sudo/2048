@@ -148,3 +148,79 @@ def update_screen():
                                 if val != 0]
                     for i in range(len(column1) - 1):
                         if column1[i] == column1[i + 1]:
+column1[i] *= 2
+column1[i + 1] = 0
+# Update the score
+score += column1[i]
+
+column1 = [val for val in column1
+           if val != 0]
+column1 += [0] * (
+    GRID_SIZE - len(column1))
+for row in range(GRID_SIZE):
+    grid[row][col] = column1[row]
+
+elif event.key == pygame.K_RIGHT:
+    for col in range(GRID_SIZE):
+        column = [grid[row][col]
+                  for row in range(GRID_SIZE)]
+        column1 = [val for val in column
+                   if val != 0]
+
+        for i in range(
+                len(column1) - 1, 0, -1):
+            if column1[i] == column1[i - 1]:
+                column1[i] *= 2
+                column1[i - 1] = 0
+                # Update score
+                score += column1[i]
+
+        column1 = [val for val in column1
+                   if val != 0]
+        column1 = [0] * (
+            GRID_SIZE - len(column1)) + column1
+        for row in range(GRID_SIZE):
+            grid[row][col] = column1[row]
+
+            # Check if grid has changed
+if grid != previous_grid:
+    generate_new_tile()
+    update_screen()
+
+# Check for win
+if any(any(cell == 2048 for cell in row)
+       for row in grid):
+    game_over()
+    running = False
+
+# Check for game over
+game_over_possible = False
+for x in range(GRID_SIZE):
+    for y in range(GRID_SIZE):
+        if grid[x][y] == 0:
+            game_over_possible = True
+        if x > 0 and (
+            grid[x][y] == grid[x - 1][y]):
+            game_over_possible = True
+        if x < GRID_SIZE - 1 and (
+            grid[x][y] == grid[x + 1][y]):
+            game_over_possible = True
+        if y > 0 and (
+            grid[x][y] == grid[x][y - 1]):
+            game_over_possible = True
+        if y < GRID_SIZE - 1 and (
+            grid[x][y] == grid[x][y + 1]):
+            game_over_possible = True
+
+if not game_over_possible:
+    game_over()
+    running = False
+
+    for row in grid:
+    if 2048 in row:
+        running = False
+
+update_screen()
+
+# Quit pygame
+pygame.quit()

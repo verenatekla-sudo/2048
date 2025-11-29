@@ -7,220 +7,218 @@ WIDTH, HEIGHT = 400, 400
 GRID_SIZE = 4
 TILE_SIZE = WIDTH // GRID_SIZE
 SCORE_HEIGHT = 50
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (169, 169, 169)
 
-# Initialize screen
-screen = pygame.display.set_mode(
-    (WIDTH, HEIGHT + SCORE_HEIGHT))
-pygame.display.set_caption('2048 Game')
+screen = pygame.display.set_mode((WIDTH, HEIGHT + SCORE_HEIGHT))
+pygame.display.set_caption("2048 Game")
 
-# Define fonts
 font = pygame.font.Font(None, 36)
 score_font = pygame.font.Font(None, 48)
 
-# Colors for tiles (2^1 to 2^12)
 TILE_COLORS = {
-    2: (255, 204, 204),     # Light pink
-    4: (255, 230, 204),     # Light orange
-    8: (204, 255, 204),     # Light green
-    16: (204, 204, 255),    # Light blue
-    32: (255, 204, 255),    # Light purple
-    64: (255, 255, 204),    # Light yellow
-    128: (255, 214, 153),   # Pastel orange
-    256: (255, 214, 255),   # Pastel pink
-    512: (204, 255, 230),   # Pastel green
-    1024: (204, 204, 255),  # Pastel blue
-    2048: (255, 255, 153),  # Pastel yellow
-    4096: (192, 192, 192)   # Gray
+    2: (255, 204, 204),
+    4: (255, 230, 204),
+    8: (204, 255, 204),
+    16: (204, 204, 255),
+    32: (255, 204, 255),
+    64: (255, 255, 204),
+    128: (255, 214, 153),
+    256: (255, 214, 255),
+    512: (204, 255, 230),
+    1024: (204, 204, 255),
+    2048: (255, 255, 153),
+    4096: (192, 192, 192)
 }
 
-BACKGROUND_COLOR = (169, 169, 169)  # Gray
+BACKGROUND_COLOR = GRAY
 
-# Initialize the grid with zeros
 grid = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
 score = 0
 
-# Helper function to draw tile
+
+# ----------------------------
+# DRAW FUNCTIONS
+# ----------------------------
+
 def draw_tile(x, y, value):
-    if value in TILE_COLORS:
-        color = TILE_COLORS[value]
-    else:
-        color = (0, 0, 0)
+    color = TILE_COLORS.get(value, (60, 60, 60))
+    pygame.draw.rect(screen, color, (x, y, TILE_SIZE, TILE_SIZE))
 
-    pygame.draw.rect(
-        screen, color, (x, y, TILE_SIZE, TILE_SIZE))
-    text_surface = font.render(
-        str(value), True, BLACK)
-    text_rect = text_surface.get_rect(
-        center=(x + TILE_SIZE // 2, y + TILE_SIZE // 2))
-    screen.blit(text_surface, text_rect)
+    if value != 0:
+        text_surface = font.render(str(value), True, BLACK)
+        text_rect = text_surface.get_rect(center=(x + TILE_SIZE // 2, y + TILE_SIZE // 2))
+        screen.blit(text_surface, text_rect)
 
-# Helper function to generate new tile (either 2 or 4)
-def generate_new_tile():
-    empty_cells = [
-        (x, y) for x in range(GRID_SIZE)
-        for y in range(GRID_SIZE) if grid[x][y] == 0]
-    if empty_cells:
-        x, y = random.choice(empty_cells)
-        grid[x][y] = 2 if random.random() < 0.9 else 4
 
-# Function to update the screen
 def update_screen():
     screen.fill(BACKGROUND_COLOR)
 
-    # Draw the score label
-    score_label = score_font.render(
-        f"Score: {score}", True, BLACK)
-            score_label_rect = score_label.get_rect(
-            center=(WIDTH // 2, HEIGHT + SCORE_HEIGHT // 2))
-        screen.blit(score_label, score_label_rect)
+    # score
+    score_text = score_font.render(f"Score: {score}", True, BLACK)
+    score_rect = score_text.get_rect(center=(WIDTH // 2, HEIGHT + SCORE_HEIGHT // 2))
+    screen.blit(score_text, score_rect)
 
-        # Draw the game grid
-        for x in range(GRID_SIZE):
-            for y in range(GRID_SIZE):
-                draw_tile(
-                    x * TILE_SIZE, y * TILE_SIZE, grid[x][y])
-            
-        pygame.display.flip()
+    # grid
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE):
+            draw_tile(c * TILE_SIZE, r * TILE_SIZE, grid[r][c])
 
-    # Function to handle game over
-    def game_over():
-        game_over_text = font.render(
-            "Game Over", True, WHITE, BLACK)
-        screen.blit(
-            game_over_text, (
-                WIDTH // 2 - 100, HEIGHT // 2 - 25))
-        pygame.display.flip()
-        pygame.time.delay(2000)
-        
-    # Initialize the game
-    generate_new_tile()
-    generate_new_tile()
-    update_screen()
-    
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                
-            if event.type == pygame.KEYDOWN:
-                previous_grid = [row[:] for row in grid]
-                
-                if event.key == pygame.K_UP:
-                    for row in grid:
-                        row1 = [
-                            val for val in row if val != 0]
-                        for i in range(len(row1) - 1):
-                            if row1[i] == row1[i + 1]:
-                                row1[i] *= 2
-                                row1[i + 1] = 2
-                                # Update the score
-                                score += row1[i]
-                        row1 = [
-                            val for val in row1 if val != 0]
-                        row1 += [0] * (GRID_SIZE - len(row1))
-                        row[:] = row1
-                        
-            elif event.key == pygame.K_DOWN:
-                for row in grid:
-                    row1 = [
-                        val for val in row if val != 0]
-                    for i in range(len(row) - 1, 0, -1):
-                        if row1[i] == row1[i - 1]:
-                            row1[i] *= 2
-                            row1[i - 1] = 2
-                            # Update score
-                            score += row1[i]
-                    row1 = [val for val in row1
-                            if val != 0]
-                    row1 = [0] * (
-                        GRID_SIZE - len(row1)) + row1
-                    row[:] = row1
-                    
-            elif event.key == pygame.K_LEFT:
-                for col in range(GRID_SIZE):
-                    column = [grid[row][col]
-                              for row in range(GRID_SIZE)]
-                    column1 = [val for val in column1
-                                if val != 0]
-                    for i in range(len(column1) - 1):
-                        if column1[i] == column1[i + 1]:
-column1[i] *= 2
-column1[i + 1] = 0
-# Update the score
-score += column1[i]
+    pygame.display.flip()
 
-column1 = [val for val in column1
-           if val != 0]
-column1 += [0] * (
-    GRID_SIZE - len(column1))
-for row in range(GRID_SIZE):
-    grid[row][col] = column1[row]
 
-elif event.key == pygame.K_RIGHT:
-    for col in range(GRID_SIZE):
-        column = [grid[row][col]
-                  for row in range(GRID_SIZE)]
-        column1 = [val for val in column
-                   if val != 0]
+# ----------------------------
+# GRID LOGIC
+# ----------------------------
 
-        for i in range(
-                len(column1) - 1, 0, -1):
-            if column1[i] == column1[i - 1]:
-                column1[i] *= 2
-                column1[i - 1] = 0
-                # Update score
-                score += column1[i]
+def generate_new_tile():
+    empty = [(r, c) for r in range(GRID_SIZE) for c in range(GRID_SIZE) if grid[r][c] == 0]
+    if empty:
+        r, c = random.choice(empty)
+        grid[r][c] = 2 if random.random() < 0.9 else 4
 
-        column1 = [val for val in column1
-                   if val != 0]
-        column1 = [0] * (
-            GRID_SIZE - len(column1)) + column1
-        for row in range(GRID_SIZE):
-            grid[row][col] = column1[row]
 
-            # Check if grid has changed
-if grid != previous_grid:
-    generate_new_tile()
-    update_screen()
+def compress(row):
+    new = [x for x in row if x != 0]
+    new += [0] * (GRID_SIZE - len(new))
+    return new
 
-# Check for win
-if any(any(cell == 2048 for cell in row)
-       for row in grid):
-    game_over()
-    running = False
 
-# Check for game over
-game_over_possible = False
-for x in range(GRID_SIZE):
-    for y in range(GRID_SIZE):
-        if grid[x][y] == 0:
-            game_over_possible = True
-        if x > 0 and (
-            grid[x][y] == grid[x - 1][y]):
-            game_over_possible = True
-        if x < GRID_SIZE - 1 and (
-            grid[x][y] == grid[x + 1][y]):
-            game_over_possible = True
-        if y > 0 and (
-            grid[x][y] == grid[x][y - 1]):
-            game_over_possible = True
-        if y < GRID_SIZE - 1 and (
-            grid[x][y] == grid[x][y + 1]):
-            game_over_possible = True
+def merge(row):
+    global score
+    for i in range(GRID_SIZE - 1):
+        if row[i] != 0 and row[i] == row[i + 1]:
+            row[i] *= 2
+            score += row[i]
+            row[i + 1] = 0
+    return row
 
-if not game_over_possible:
-    game_over()
-    running = False
 
-    for row in grid:
-    if 2048 in row:
-        running = False
+def move_left():
+    changed = False
+    new_grid = []
 
+    for r in range(GRID_SIZE):
+        row = grid[r]
+        compressed = compress(row)
+        merged = merge(compressed)
+        final = compress(merged)
+        new_grid.append(final)
+        if final != row:
+            changed = True
+
+    return new_grid, changed
+
+
+def move_right():
+    reversed_grid = [row[::-1] for row in grid]
+    new, changed = move_left_grid(reversed_grid)
+    new = [row[::-1] for row in new]
+    return new, changed
+
+
+def move_left_grid(g):
+    """move_left but using custom grid (helper for right/down)"""
+    changed = False
+    new_grid = []
+
+    for r in range(GRID_SIZE):
+        row = g[r]
+        compressed = compress(row)
+        merged = merge(compressed)
+        final = compress(merged)
+        new_grid.append(final)
+        if final != row:
+            changed = True
+    return new_grid, changed
+
+
+def move_up():
+    transposed = list(map(list, zip(*grid)))
+    new, changed = move_left_grid(transposed)
+    new = list(map(list, zip(*new)))
+    return new, changed
+
+
+def move_down():
+    transposed = list(map(list, zip(*grid)))
+    reversed_grid = [row[::-1] for row in transposed]
+    new, changed = move_left_grid(reversed_grid)
+    new = [row[::-1] for row in new]
+    new = list(map(list, zip(*new)))
+    return new, changed
+
+
+def can_move():
+    if any(0 in row for row in grid):
+        return True
+
+    for r in range(GRID_SIZE):
+        for c in range(GRID_SIZE - 1):
+            if grid[r][c] == grid[r][c + 1]:
+                return True
+
+    for c in range(GRID_SIZE):
+        for r in range(GRID_SIZE - 1):
+            if grid[r][c] == grid[r + 1][c]:
+                return True
+
+    return False
+
+
+def game_over():
+    text = font.render("GAME OVER", True, WHITE, BLACK)
+    screen.blit(text, (WIDTH // 2 - 80, HEIGHT // 2 - 20))
+    pygame.display.flip()
+    pygame.time.delay(2000)
+
+
+# ----------------------------
+# INIT
+# ----------------------------
+
+generate_new_tile()
+generate_new_tile()
 update_screen()
 
-# Quit pygame
+running = True
+
+# ----------------------------
+# MAIN LOOP
+# ----------------------------
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.KEYDOWN:
+            moved = False
+
+            if event.key == pygame.K_LEFT:
+                new, moved = move_left()
+            elif event.key == pygame.K_RIGHT:
+                new, moved = move_right()
+            elif event.key == pygame.K_UP:
+                new, moved = move_up()
+            elif event.key == pygame.K_DOWN:
+                new, moved = move_down()
+            else:
+                continue
+
+            if moved:
+                grid = new
+                generate_new_tile()
+                update_screen()
+
+            if any(2048 in row for row in grid):
+                game_over()
+                running = False
+
+            if not can_move():
+                game_over()
+                running = False
+
 pygame.quit()
